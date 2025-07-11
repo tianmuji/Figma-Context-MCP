@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "Figma MCP (Local Dev)": {
+      "command": "node",
+      "args": [
+        "/Users/yujie_wu/Figma-Context-MCP/dist/cli.js",
+        "--figma-api-key=YOUR_FIGMA_API_TOKEN_HERE",
+        "--stdio"
+      ],
+      "env": {
+        "NODE_ENV": "development"
+      }
+    }
+  }
+}
