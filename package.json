@@ -1,6 +1,6 @@
 {
   "name": "@camscanner-share/figma-developer-mcp",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "description": "Model Context Protocol server for Figma integration with smart position info",
   "type": "module",
   "main": "dist/index.js",
@@ -42,9 +42,9 @@
   "packageManager": "pnpm@10.10.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yujie_wu/Figma-Context-MCP.git"
+    "url": "git+https://github.com/tianmuji/Figma-Context-MCP.git"
   },
-  "homepage": "https://github.com/yujie_wu/Figma-Context-MCP",
+  "homepage": "https://github.com/tianmuji/Figma-Context-MCP",
   "keywords": [
     "figma",
     "mcp",
