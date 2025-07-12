@@ -1,12 +1,13 @@
 {
-  "name": "@camscanner-share/figma-developer-mcp",
-  "version": "0.4.5",
+  "name": "@camscanner-share/figma-context-mcp",
+  "version": "1.0.0",
   "description": "Model Context Protocol server for Figma integration with smart position info",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
     "figma-developer-mcp": "dist/cli.js",
-    "figma-mcp": "dist/cli.js"
+    "figma-mcp": "dist/cli.js",
+    "yujie-figma-mcp": "dist/cli.js"
   },
   "files": [
     "dist",
