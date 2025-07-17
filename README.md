@@ -83,28 +83,37 @@ Claude Desktop is one of the most popular MCP clients. Follow these platform-spe
    nano ~/Library/Application\ Support/Claude/claude_desktop_config.json
    ```
 
-2. **Add the MCP server configuration:**
+2. **Add the MCP server configuration (recommended):**
    ```json
    {
      "mcpServers": {
        "figma-context": {
          "command": "figma-context-mcp",
-         "args": ["--figma-api-key=YOUR_FIGMA_API_KEY", "--stdio"]
+         "args": ["--figma-api-key=${FIGMA_API_KEY}", "--stdio"]
        }
      }
    }
    ```
 
-3. **Alternative with environment variable (recommended):**
+3. **Set your environment variable:**
+   ```bash
+   # macOS/Linux
+   export FIGMA_API_KEY="your_actual_figma_token_here"
+
+   # Windows PowerShell
+   $env:FIGMA_API_KEY = "your_actual_figma_token_here"
+
+   # Windows Command Prompt
+   setx FIGMA_API_KEY "your_actual_figma_token_here"
+   ```
+
+4. **Alternative with direct token (less secure):**
    ```json
    {
      "mcpServers": {
        "figma-context": {
          "command": "figma-context-mcp",
-         "args": ["--figma-api-key=${FIGMA_API_KEY}", "--stdio"],
-         "env": {
-           "FIGMA_API_KEY": "your_actual_figma_token_here"
-         }
+         "args": ["--figma-api-key=your_actual_figma_token_here", "--stdio"]
        }
      }
    }
@@ -126,30 +135,30 @@ Claude Desktop is one of the most popular MCP clients. Follow these platform-spe
    cd %APPDATA%\Claude
    ```
 
-2. **Create or edit the configuration file:**
+2. **Create or edit the configuration file (recommended):**
    ```json
    {
      "mcpServers": {
        "figma-context": {
          "command": "figma-context-mcp",
-         "args": ["--figma-api-key=YOUR_FIGMA_API_KEY", "--stdio"]
+         "args": ["--figma-api-key=${FIGMA_API_KEY}", "--stdio"]
        }
      }
    }
    ```
 
-3. **Using PowerShell with environment variables:**
+3. **Set environment variable using PowerShell:**
    ```powershell
    $env:FIGMA_API_KEY = "your_actual_figma_token_here"
    ```
 
-4. **Configuration with environment variable:**
+4. **Alternative with direct token (less secure):**
    ```json
    {
      "mcpServers": {
        "figma-context": {
          "command": "figma-context-mcp",
-         "args": ["--figma-api-key=%FIGMA_API_KEY%", "--stdio"]
+         "args": ["--figma-api-key=your_actual_figma_token_here", "--stdio"]
        }
      }
    }
@@ -181,13 +190,13 @@ Cursor IDE provides excellent MCP support for development workflows.
    - Press `Cmd/Ctrl + ,` to open settings
    - Navigate to "Extensions" → "MCP Servers"
 
-2. **Add MCP Server Configuration:**
+2. **Add MCP Server Configuration (recommended):**
    ```json
    {
      "mcpServers": {
        "figma-context": {
          "command": "figma-mcp",
-         "args": ["--figma-api-key=YOUR_FIGMA_API_KEY", "--stdio"],
+         "args": ["--figma-api-key=${FIGMA_API_KEY}", "--stdio"],
          "env": {
            "NODE_ENV": "production"
          }
