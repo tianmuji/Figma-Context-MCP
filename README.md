@@ -24,13 +24,22 @@ A Model Context Protocol (MCP) server that provides seamless integration with Fi
 ### Prerequisites
 
 - Node.js 16 or higher
-- npm or yarn package manager
+- Package manager: npm, yarn, or pnpm
 - A Figma account with API access
 
 ### Global Installation
 
+Choose your preferred package manager:
+
 ```bash
+# Using npm
 npm install -g figma-context-mcp
+
+# Using yarn
+yarn global add figma-context-mcp
+
+# Using pnpm
+pnpm add -g figma-context-mcp
 ```
 
 ## Quick Start Guide
@@ -346,14 +355,28 @@ For developers who want to contribute or customize the MCP server:
    cd Figma-Context-MCP
    ```
 
-2. **Install dependencies:**
+2. **Install dependencies (choose your preferred package manager):**
    ```bash
+   # Using npm
    npm install
+
+   # Using yarn
+   yarn install
+
+   # Using pnpm
+   pnpm install
    ```
 
 3. **Build the project:**
    ```bash
+   # Using npm
    npm run build
+
+   # Using yarn
+   yarn build
+
+   # Using pnpm
+   pnpm build
    ```
 
 4. **Configure for local development:**
@@ -755,17 +778,28 @@ nslookup api.figma.com
 - [Figma API Documentation](https://www.figma.com/developers/api) - For Figma-specific issues
 
 **Update and Maintenance:**
+
+Choose your preferred package manager:
+
 ```bash
-# Check for updates
-npm outdated -g figma-context-mcp
-
-# Update to latest version
-npm update -g figma-context-mcp
-
-# Clean reinstall if needed
-npm uninstall -g figma-context-mcp
+# Using npm
+npm outdated -g figma-context-mcp          # Check for updates
+npm update -g figma-context-mcp            # Update to latest version
+npm uninstall -g figma-context-mcp         # Clean reinstall
 npm cache clean --force
 npm install -g figma-context-mcp
+
+# Using yarn
+yarn global list | grep figma-context-mcp  # Check current version
+yarn global upgrade figma-context-mcp      # Update to latest version
+yarn global remove figma-context-mcp       # Clean reinstall
+yarn global add figma-context-mcp
+
+# Using pnpm
+pnpm outdated -g figma-context-mcp         # Check for updates
+pnpm update -g figma-context-mcp           # Update to latest version
+pnpm remove -g figma-context-mcp           # Clean reinstall
+pnpm add -g figma-context-mcp
 ```
 
 ## Development
@@ -775,20 +809,24 @@ npm install -g figma-context-mcp
 ```bash
 git clone https://github.com/tianmuji/Figma-Context-MCP.git
 cd Figma-Context-MCP
-npm install
-npm run build
+
+# Install dependencies (choose your preferred package manager)
+npm install     # or yarn install     # or pnpm install
+
+# Build the project
+npm run build   # or yarn build       # or pnpm build
 ```
 
 ### Running Tests
 
 ```bash
-npm test
+npm test        # or yarn test        # or pnpm test
 ```
 
 ### Local Development
 
 ```bash
-npm run dev
+npm run dev     # or yarn dev         # or pnpm dev
 ```
 
 ## Contributing

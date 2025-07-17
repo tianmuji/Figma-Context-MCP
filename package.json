@@ -1,6 +1,6 @@
 {
   "name": "figma-context-mcp",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Model Context Protocol server for Figma integration with smart position info",
   "type": "module",
   "main": "dist/index.js",
@@ -40,7 +40,6 @@
   "engines": {
     "node": ">=18.0.0"
   },
-  "packageManager": "pnpm@10.10.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tianmuji/Figma-Context-MCP.git"
