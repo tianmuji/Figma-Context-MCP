@@ -1,142 +1,213 @@
-> **Note**: This project is forked from [GLips/Figma-Context-MCP](https://github.com/GLips/Figma-Context-MCP)
+# figma-context-mcp
 
-<div align="center">
-  <h1>Figma MCP Server with Smart Position Info</h1>
-  <p>
-    🌐 Available in:
-    <a href="README.ko.md">한국어 (Korean)</a> |
-    <a href="README.ja.md">日本語 (Japanese)</a> |
-    <a href="README.zh.md">中文 (Chinese)</a>
-  </p>
-  <h3>Give your coding agent access to your Figma data.<br/>Implement designs in any framework in one-shot.</h3>
-  <a href="https://npmcharts.com/compare/figma-developer-mcp?interval=30">
-    <img alt="weekly downloads" src="https://img.shields.io/npm/dm/figma-developer-mcp.svg">
-  </a>
-  <a href="https://github.com/GLips/Figma-Context-MCP/blob/main/LICENSE">
-    <img alt="MIT License" src="https://img.shields.io/github/license/GLips/Figma-Context-MCP" />
-  </a>
-  <a href="https://framelink.ai/discord">
-    <img alt="Discord" src="https://img.shields.io/discord/1352337336913887343?color=7389D8&label&logo=discord&logoColor=ffffff" />
-  </a>
-  <br />
-  <a href="https://twitter.com/glipsman">
-    <img alt="Twitter" src="https://img.shields.io/twitter/url?url=https%3A%2F%2Fx.com%2Fglipsman&label=%40glipsman" />
-  </a>
-</div>
+A Model Context Protocol (MCP) server that provides seamless integration with Figma's design API, featuring smart position information processing and layout inference capabilities. This tool enables AI assistants to understand and work with your Figma design files with enhanced spatial awareness.
 
-<br/>
+[![npm version](https://img.shields.io/npm/v/figma-context-mcp.svg)](https://www.npmjs.com/package/figma-context-mcp)
+[![npm downloads](https://img.shields.io/npm/dm/figma-context-mcp.svg)](https://www.npmjs.com/package/figma-context-mcp)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/tianmuji/Figma-Context-MCP/blob/main/LICENSE)
 
-Give [Cursor](https://cursor.sh/) and other AI-powered coding tools access to your Figma files with this [Model Context Protocol](https://modelcontextprotocol.io/introduction) server.
+## Project Overview
 
-When Cursor has access to Figma design data, it's **way** better at one-shotting designs accurately than alternative approaches like pasting screenshots.
+`figma-context-mcp` is an enhanced Figma MCP server that goes beyond basic design file access. It features intelligent position information processing that helps AI assistants understand spatial relationships, layout structures, and design hierarchies within Figma files. The server automatically processes absolute positioning data to infer logical layout relationships, making design-to-code workflows more accurate and efficient.
 
-<h3><a href="https://www.framelink.ai/docs/quickstart?utm_source=github&utm_medium=referral&utm_campaign=readme">See quickstart instructions →</a></h3>
+### Key Features
 
-## Demo
+- 🎨 **Smart Position Processing**: Automatically processes absolute positioning to infer flex layouts and spatial relationships
+- 🧠 **Layout Inference**: Converts Figma's absolute positioning into logical layout structures for better code generation
+- 🔍 **Enhanced Design Analysis**: Deep understanding of component hierarchies and design systems
+- 🚀 **Multiple CLI Commands**: Three convenient command aliases for different use cases
+- 🛡️ **Secure Integration**: Uses official Figma API with personal access tokens
+- 📱 **MCP Compatible**: Works with Claude Desktop, Cursor, and other MCP-compatible tools
 
-[Watch a demo of building a UI in Cursor with Figma design data](https://youtu.be/6G9yb-LrEqg)
+## Installation
 
-[![Watch the video](https://img.youtube.com/vi/6G9yb-LrEqg/maxresdefault.jpg)](https://youtu.be/6G9yb-LrEqg)
+### Prerequisites
 
-## How it works
+- Node.js 16 or higher
+- npm or yarn package manager
+- A Figma account with API access
 
-1. Open your IDE's chat (e.g. agent mode in Cursor).
-2. Paste a link to a Figma file, frame, or group.
-3. Ask Cursor to do something with the Figma file—e.g. implement the design.
-4. Cursor will fetch the relevant metadata from Figma and use it to write your code.
+### Global Installation
 
-This MCP server is specifically designed for use with Cursor. Before responding with context from the [Figma API](https://www.figma.com/developers/api), it simplifies and translates the response so only the most relevant layout and styling information is provided to the model.
+```bash
+npm install -g figma-context-mcp
+```
 
-Reducing the amount of context provided to the model helps make the AI more accurate and the responses more relevant.
+## Quick Start Guide
 
-## Getting Started
+### 1. Obtain a Figma API Key
 
-Many code editors and other AI clients use a configuration file to manage MCP servers.
+1. Visit your [Figma Account Settings](https://www.figma.com/settings)
+2. Scroll to the "Personal access tokens" section
+3. Click "Create new token"
+4. Provide a descriptive name for your token
+5. Copy the generated token (keep it secure!)
 
-The `figma-developer-mcp` server can be configured by adding the following to your configuration file.
+### 2. Basic Usage
 
-> NOTE: You will need to create a Figma access token to use this server. Instructions on how to create a Figma API access token can be found [here](https://help.figma.com/hc/en-us/articles/8085703771159-Manage-personal-access-tokens).
+The tool provides three CLI command aliases for your convenience:
 
-### MacOS / Linux
+```bash
+# Standard command
+figma-developer-mcp --figma-api-key=YOUR_FIGMA_API_KEY --stdio
+
+# Short alias
+figma-mcp --figma-api-key=YOUR_FIGMA_API_KEY --stdio
+
+# Personal alias
+yujie-figma-mcp --figma-api-key=YOUR_FIGMA_API_KEY --stdio
+```
+
+### 3. MCP Client Configuration
+
+#### Claude Desktop Configuration
+
+**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+**Windows**: `%APPDATA%/Claude/claude_desktop_config.json`
 
 ```json
 {
   "mcpServers": {
-    "Framelink Figma MCP": {
-      "command": "npx",
-      "args": ["-y", "figma-developer-mcp", "--figma-api-key=YOUR-KEY", "--stdio"]
+    "figma-context": {
+      "command": "figma-context-mcp",
+      "args": ["--figma-api-key=YOUR_FIGMA_API_KEY", "--stdio"]
     }
   }
 }
 ```
 
-### Windows
+#### Cursor IDE Configuration
+
+Add to your Cursor MCP settings:
 
 ```json
 {
   "mcpServers": {
-    "Framelink Figma MCP": {
-      "command": "cmd",
-      "args": ["/c", "npx", "-y", "figma-developer-mcp", "--figma-api-key=YOUR-KEY", "--stdio"]
+    "figma-context": {
+      "command": "figma-mcp",
+      "args": ["--figma-api-key=YOUR_FIGMA_API_KEY", "--stdio"],
+      "env": {
+        "NODE_ENV": "production"
+      }
     }
   }
 }
 ```
 
-Or you can set `FIGMA_API_KEY` and `PORT` in the `env` field.
+#### Other MCP Clients
 
-If you need more information on how to configure the Framelink Figma MCP server, see the [Framelink docs](https://www.framelink.ai/docs/quickstart?utm_source=github&utm_medium=referral&utm_campaign=readme).
+For other MCP-compatible tools, use any of the three available commands with the same argument structure.
 
-## Star History
+## Usage Examples
 
-<a href="https://star-history.com/#GLips/Figma-Context-MCP"><img src="https://api.star-history.com/svg?repos=GLips/Figma-Context-MCP&type=Date" alt="Star History Chart" width="600" /></a>
+### Design Analysis with Smart Positioning
 
-## Learn More
+```
+"Analyze the layout structure of this Figma design, focusing on the spatial relationships between elements:"
+https://www.figma.com/file/abc123/my-design
+```
 
-The Framelink Figma MCP server is simple but powerful. Get the most out of it by learning more at the [Framelink](https://framelink.ai?utm_source=github&utm_medium=referral&utm_campaign=readme) site.
+### Component-Based Code Generation
 
-<!-- SPONSORS:LIST:START -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
+```
+"Generate React components from this Figma design, using the inferred layout structure:"
+https://www.figma.com/design/abc123/component-library?node-id=123-456
+```
 
-## Sponsors
+### Design System Extraction
 
-### 🥇 Gold Sponsors
+```
+"Extract design tokens and component patterns from this Figma file, including spacing and layout information:"
+https://www.figma.com/file/abc123/design-system
+```
 
-<table>
-  <tr>
-   <td align="center"><a href="https://framelink.ai/?ref=framelink-mcp&utm_source=github&utm_medium=referral&utm_campaign=framelink-mcp"><img src="https://avatars.githubusercontent.com/u/204619719" width="180" alt="Framelink"/><br />Framelink</a></td>
-  </tr>
-</table>
+### Layout Structure Analysis
 
-### 🥈 Silver Sponsors
+```
+"Help me understand how the elements in this Figma frame are positioned relative to each other:"
+https://www.figma.com/file/abc123/layout-example?node-id=789-012
+```
 
-<table>
-  <tr>
-   <!-- <td align="center"><a href=""><img src="" width="150" alt="tbd"/><br />Title</a></td> -->
-  </tr>
-</table>
+## Advanced Features
 
-### 🥉 Bronze Sponsors
+### Smart Position Information Processing
 
-<table>
-  <tr>
-   <!-- <td align="center"><a href=""><img src="" width="120" alt="tbd"/><br />tbd</a></td>-->
-  </tr>
-</table>
+The server automatically:
+- Processes absolute positioning data from Figma
+- Infers logical parent-child relationships
+- Converts absolute coordinates to relative positioning
+- Suggests appropriate CSS layout methods (flexbox, grid)
+- Maintains spatial context for better code generation
 
-### 😻 Smaller Backers
+### Layout Inference Capabilities
 
-<table>
-  <tr>
-   <!-- <td align="center"><a href=""><img src="" width="100" alt="tbd"/><br />tbd</a></td>-->
-  </tr>
-  <tr>
-   <!-- <td align="center"><a href=""><img src="" width="100" alt="tbd"/><br />tbd</a></td>-->
-  </tr>
-</table>
+- **AutoLayout Detection**: Recognizes Figma's AutoLayout and preserves flex properties
+- **Absolute Position Handling**: Converts absolute positioning to logical layout structures
+- **Spacing Analysis**: Calculates gaps, margins, and padding from position data
+- **Hierarchy Understanding**: Builds component trees based on spatial relationships
 
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
+## Troubleshooting
 
-<!-- SPONSORS:LIST:END -->
+### Common Issues
+
+**Invalid API Token**
+- Verify your Figma API token is correct
+- Ensure the token has necessary permissions for the files you're accessing
+
+**File Access Denied**
+- Check that the Figma file is accessible with your account
+- Verify file sharing permissions if it's a team file
+
+**Command Not Found**
+- Ensure the package is installed globally: `npm list -g figma-context-mcp`
+- Try reinstalling: `npm uninstall -g figma-context-mcp && npm install -g figma-context-mcp`
+
+**MCP Connection Issues**
+- Restart your MCP client after configuration changes
+- Verify the JSON configuration syntax is correct
+- Check that the command path is accessible
+
+### Getting Help
+
+- [GitHub Issues](https://github.com/tianmuji/Figma-Context-MCP/issues)
+- [MCP Documentation](https://modelcontextprotocol.io/)
+- Check for updates: `npm update -g figma-context-mcp`
+
+## Development
+
+### Building from Source
+
+```bash
+git clone https://github.com/tianmuji/Figma-Context-MCP.git
+cd Figma-Context-MCP
+npm install
+npm run build
+```
+
+### Running Tests
+
+```bash
+npm test
+```
+
+### Local Development
+
+```bash
+npm run dev
+```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit issues and pull requests.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Author
+
+**yujie_wu**
+
+## Attribution
+
+This project is a fork of the original [Figma-Context-MCP](https://github.com/GLips/Figma-Context-MCP) by GLips. We extend our gratitude to the original author for creating the foundation that made this enhanced version possible. This fork adds smart position information processing, layout inference capabilities, and additional CLI command options while maintaining compatibility with the original MCP protocol implementation.
