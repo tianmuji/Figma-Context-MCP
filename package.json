@@ -1,6 +1,6 @@
 {
   "name": "figma-context-mcp",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Model Context Protocol server for Figma integration with smart position info",
   "type": "module",
   "main": "dist/index.js",
