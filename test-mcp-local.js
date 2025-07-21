@@ -122,6 +122,41 @@ async function testMCP() {
     console.log('\n📝 Sample Response (first 500 chars):');
     console.log(content.substring(0, 500) + '...');
 
+    // 4. 测试带savePath的get_figma_data工具
+    console.log('\n4. Testing get_figma_data tool with savePath...');
+    const figmaWithSaveRequest = {
+      jsonrpc: "2.0",
+      id: 4,
+      method: "tools/call",
+      params: {
+        name: "get_figma_data",
+        arguments: {
+          fileKey: "hdyf6u2eqRkmXY0I7d9S98",
+          nodeId: "2836-1477",
+          savePath: "./test-output"
+        }
+      }
+    };
+
+    const figmaWithSaveResponse = await sendMCPRequest(figmaWithSaveRequest);
+    console.log('✅ Figma data with save retrieved successfully');
+
+    const saveContent = figmaWithSaveResponse.result.content[0].text;
+    const hasSaveInfo = saveContent.includes('--- FILE SAVED ---');
+    const hasFilePath = saveContent.includes('Data saved to:');
+
+    console.log('\n💾 Save Results:');
+    console.log(`- Contains save confirmation: ${hasSaveInfo}`);
+    console.log(`- Contains file path: ${hasFilePath}`);
+
+    if (hasSaveInfo) {
+      const saveLines = saveContent.split('\n');
+      const saveInfoLine = saveLines.find(line => line.includes('Data saved to:'));
+      if (saveInfoLine) {
+        console.log(`- ${saveInfoLine}`);
+      }
+    }
+
   } catch (error) {
     console.error('❌ Test failed:', error.message);
   } finally {

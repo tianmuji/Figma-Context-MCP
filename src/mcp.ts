@@ -4,6 +4,7 @@ import { FigmaService, type FigmaAuthOptions } from "./services/figma.js";
 import type { SimplifiedDesign } from "./services/simplify-node-response.js";
 import yaml from "js-yaml";
 import { Logger } from "./utils/logger.js";
+import { saveFigmaData } from "./utils/common.js";
 
 const serverInfo = {
   name: "Figma MCP Server",
@@ -56,8 +57,14 @@ function registerTools(
         .describe(
           "OPTIONAL. Do NOT use unless explicitly requested by the user. Controls how many levels deep to traverse the node tree,",
         ),
+      savePath: z
+        .string()
+        .optional()
+        .describe(
+          "OPTIONAL. Local directory path where the fetched Figma data should be saved as a JSON file. If provided, the directory will be created if it doesn't exist.",
+        ),
     },
-    async ({ fileKey, nodeId, depth }) => {
+    async ({ fileKey, nodeId, depth, savePath }) => {
       try {
         Logger.log(
           `Fetching ${
@@ -85,16 +92,40 @@ function registerTools(
         const formattedResult =
           outputFormat === "json" ? JSON.stringify(result, null, 2) : yaml.dump(result);
 
+        // Save to file if savePath is provided
+        let savedFilePath: string | undefined;
+        if (savePath) {
+          try {
+            Logger.log(`Saving Figma data to: ${savePath}`);
+            savedFilePath = await saveFigmaData(result, savePath, fileKey, nodeId);
+            Logger.log(`Successfully saved Figma data to: ${savedFilePath}`);
+          } catch (saveError) {
+            const saveErrorMessage = saveError instanceof Error ? saveError.message : String(saveError);
+            Logger.error(`Failed to save Figma data: ${saveErrorMessage}`);
+            // Continue with the response even if saving fails
+          }
+        }
+
         Logger.log("Sending result to client");
+        const responseText = savedFilePath
+          ? `${formattedResult}\n\n--- FILE SAVED ---\nData saved to: ${savedFilePath}`
+          : formattedResult;
+
         return {
-          content: [{ type: "text", text: formattedResult }],
+          content: [{ type: "text", text: responseText }],
         };
       } catch (error) {
         const message = error instanceof Error ? error.message : JSON.stringify(error);
         Logger.error(`Error fetching file ${fileKey}:`, message);
+
+        // If there was a save path specified but we failed, mention it in the error
+        const errorText = savePath
+          ? `Error fetching file: ${message}. Note: Data could not be saved to ${savePath} due to the fetch error.`
+          : `Error fetching file: ${message}`;
+
         return {
           isError: true,
-          content: [{ type: "text", text: `Error fetching file: ${message}` }],
+          content: [{ type: "text", text: errorText }],
         };
       }
     },

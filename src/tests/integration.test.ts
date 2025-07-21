@@ -74,5 +74,53 @@ describe("Figma MCP Server Tests", () => {
 
       expect(parsed).toBeDefined();
     }, 60000);
+
+    it("should be able to get Figma file data with savePath", async () => {
+      const fs = await import("fs");
+      const path = await import("path");
+      const os = await import("os");
+
+      // Create a temporary directory for testing
+      const tempDir = path.join(os.tmpdir(), "figma-test-" + Date.now());
+
+      const args: any = {
+        fileKey: figmaFileKey,
+        savePath: tempDir,
+      };
+
+      const result = await client.request(
+        {
+          method: "tools/call",
+          params: {
+            name: "get_figma_data",
+            arguments: args,
+          },
+        },
+        CallToolResultSchema,
+      );
+
+      const content = result.content[0].text as string;
+
+      // Should contain the saved file path information
+      expect(content).toContain("--- FILE SAVED ---");
+      expect(content).toContain("Data saved to:");
+      expect(content).toContain(tempDir);
+
+      // Verify the file was actually created
+      const files = fs.readdirSync(tempDir);
+      expect(files.length).toBe(1);
+      expect(files[0]).toMatch(/^figma-.*\.json$/);
+
+      // Verify the file contains valid JSON
+      const savedFilePath = path.join(tempDir, files[0]);
+      const savedContent = fs.readFileSync(savedFilePath, 'utf8');
+      const parsedSavedContent = JSON.parse(savedContent);
+      expect(parsedSavedContent).toBeDefined();
+      expect(parsedSavedContent.metadata).toBeDefined();
+      expect(parsedSavedContent.nodes).toBeDefined();
+
+      // Clean up
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }, 60000);
   });
 });

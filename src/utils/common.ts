@@ -16,6 +16,47 @@ export interface ColorValue {
 }
 
 /**
+ * Save Figma data as JSON file to a local directory
+ * @param data - The data to save
+ * @param savePath - The directory path to save to
+ * @param fileKey - The Figma file key for filename generation
+ * @param nodeId - Optional node ID for filename generation
+ * @returns A Promise that resolves to the full file path where the data was saved
+ * @throws Error if save fails
+ */
+export async function saveFigmaData(
+  data: any,
+  savePath: string,
+  fileKey: string,
+  nodeId?: string,
+): Promise<string> {
+  try {
+    // Ensure save path exists
+    if (!fs.existsSync(savePath)) {
+      fs.mkdirSync(savePath, { recursive: true });
+    }
+
+    // Generate filename with timestamp
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const fileName = nodeId
+      ? `figma-${fileKey}-${nodeId}-${timestamp}.json`
+      : `figma-${fileKey}-${timestamp}.json`;
+
+    // Build the complete file path
+    const fullPath = path.join(savePath, fileName);
+
+    // Write the data as JSON
+    const jsonData = JSON.stringify(data, null, 2);
+    fs.writeFileSync(fullPath, jsonData, 'utf8');
+
+    return fullPath;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`Error saving Figma data: ${errorMessage}`);
+  }
+}
+
+/**
  * Download Figma image and save it locally
  * @param fileName - The filename to save as
  * @param localPath - The local path to save to
