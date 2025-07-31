@@ -29,6 +29,7 @@ export interface SimplifiedLayout {
   };
   overflowScroll?: ("x" | "y")[];
   position?: "absolute";
+  clipsContent?: boolean;
 }
 
 // Convert Figma's layout config into a more typical flex-like schema
@@ -158,6 +159,11 @@ function buildSimplifiedFrameValues(n: FigmaDocumentNode): SimplifiedLayout | { 
   if (n.overflowDirection?.includes("HORIZONTAL")) overflowScroll.push("x");
   if (n.overflowDirection?.includes("VERTICAL")) overflowScroll.push("y");
   if (overflowScroll.length > 0) frameValues.overflowScroll = overflowScroll;
+
+  // Only include clipsContent when it's explicitly set to true
+  if (n.clipsContent === true) {
+    frameValues.clipsContent = true;
+  }
 
   if (frameValues.mode === "none") {
     return frameValues;

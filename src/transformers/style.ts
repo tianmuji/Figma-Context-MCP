@@ -7,6 +7,7 @@ export type SimplifiedStroke = {
   strokeWeight?: string;
   strokeDashes?: number[];
   strokeWeights?: string;
+  strokeAlign?: "INSIDE" | "OUTSIDE" | "CENTER";
 };
 export function buildSimplifiedStrokes(n: FigmaDocumentNode): SimplifiedStroke {
   let strokes: SimplifiedStroke = { colors: [] };
@@ -23,7 +24,14 @@ export function buildSimplifiedStrokes(n: FigmaDocumentNode): SimplifiedStroke {
   }
 
   if (hasValue("individualStrokeWeights", n, isStrokeWeights)) {
-    strokes.strokeWeight = generateCSSShorthand(n.individualStrokeWeights);
+    strokes.strokeWeights = generateCSSShorthand(n.individualStrokeWeights);
+  }
+
+  if (hasValue("strokeAlign", n) && typeof n.strokeAlign === "string") {
+    const validStrokeAligns = ["INSIDE", "OUTSIDE", "CENTER"] as const;
+    if (validStrokeAligns.includes(n.strokeAlign as any)) {
+      strokes.strokeAlign = n.strokeAlign as "INSIDE" | "OUTSIDE" | "CENTER";
+    }
   }
 
   return strokes;

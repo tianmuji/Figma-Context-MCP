@@ -13,9 +13,7 @@ export default {
     '^~/(.*)$': '<rootDir>/src/$1',
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
-  globals: {
-    'ts-jest': {
-      useESM: true
-    }
-  }
+  transformIgnorePatterns: [
+    'node_modules/(?!(.*\\.mjs$))'
+  ]
 };

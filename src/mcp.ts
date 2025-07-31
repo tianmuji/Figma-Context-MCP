@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { FigmaService, type FigmaAuthOptions } from "./services/figma.js";
 import type { SimplifiedDesign } from "./services/simplify-node-response.js";
+import { createImageDownloadDebugCollector, formatDebugInfoForUser } from "./utils/debug-info.js";
 import yaml from "js-yaml";
 import { Logger } from "./utils/logger.js";
 import { saveFigmaData } from "./utils/common.js";
@@ -190,12 +191,17 @@ function registerTools(
     },
     async ({ fileKey, nodes, localPath, svgOptions, pngScale }) => {
       try {
+        const debugCollector = createImageDownloadDebugCollector();
+        
+        Logger.log(`Image download tool called with ${nodes.length} nodes for file ${fileKey}`);
+        debugCollector.setTotalNodes(nodes.length);
+        
+        // Separate nodes into image fills and render requests
         const imageFills = nodes.filter(({ imageRef }) => !!imageRef) as {
           nodeId: string;
           imageRef: string;
           fileName: string;
         }[];
-        const fillDownloads = figmaService.getImageFills(fileKey, imageFills, localPath);
         const renderRequests = nodes
           .filter(({ imageRef }) => !imageRef)
           .map(({ nodeId, fileName }) => ({
@@ -204,12 +210,35 @@ function registerTools(
             fileType: fileName.endsWith(".svg") ? ("svg" as const) : ("png" as const),
           }));
 
+        const pngRequests = renderRequests.filter(r => r.fileType === "png");
+        const svgRequests = renderRequests.filter(r => r.fileType === "svg");
+        
+        debugCollector.setNodeCounts(pngRequests.length, svgRequests.length, imageFills.length);
+
+        Logger.log(`Breakdown: ${imageFills.length} image fills, ${renderRequests.length} render requests`);
+        
+        if (imageFills.length > 0) {
+          Logger.log(`Image fill nodes: ${imageFills.map(f => `${f.nodeId}(${f.imageRef})`).join(", ")}`);
+        }
+        if (renderRequests.length > 0) {
+          Logger.log(`Render request nodes: ${renderRequests.map(r => `${r.nodeId}(${r.fileType})`).join(", ")}`);
+        }
+
+        // Log filtering decisions
+        const excludedNodes = nodes.filter(({ imageRef }) => imageRef === "");
+        if (excludedNodes.length > 0) {
+          Logger.log(`Nodes excluded due to empty imageRef: ${excludedNodes.map(n => n.nodeId).join(", ")}`);
+          excludedNodes.forEach(node => debugCollector.addExcludedNode(node.nodeId));
+        }
+
+        const fillDownloads = figmaService.getImageFills(fileKey, imageFills, localPath, debugCollector);
         const renderDownloads = figmaService.getImages(
           fileKey,
           renderRequests,
           localPath,
           pngScale,
           svgOptions,
+          debugCollector,
         );
 
         const downloads = await Promise.all([fillDownloads, renderDownloads]).then(([f, r]) => [
@@ -217,15 +246,48 @@ function registerTools(
           ...r,
         ]);
 
+        // Count successful downloads (non-empty strings)
+        const successfulDownloads = downloads.filter(d => d && d.length > 0);
+        const failedDownloads = downloads.filter(d => !d || d.length === 0);
+        
+        debugCollector.setSuccessfulDownloads(successfulDownloads.length);
+        Logger.log(`Download results: ${successfulDownloads.length} successful, ${failedDownloads.length} failed`);
+
+        // Get structured debug information
+        const debugInfo = debugCollector.getDebugInfo();
+        const userFriendlyDebugInfo = formatDebugInfoForUser(debugInfo);
+
+        // Provide detailed debugging information when no images are downloaded
+        if (successfulDownloads.length === 0) {
+          debugCollector.logDebugSummary();
+          
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Success, 0 images downloaded.\n\n${userFriendlyDebugInfo}`,
+              },
+            ],
+          };
+        }
+
         // If any download fails, return false
         const saveSuccess = !downloads.find((success) => !success);
+        const resultText = saveSuccess
+          ? `Success, ${successfulDownloads.length} images downloaded: ${successfulDownloads.join(", ")}`
+          : `Partial success, ${successfulDownloads.length} of ${downloads.length} images downloaded: ${successfulDownloads.join(", ")}`;
+          
+        // Include debug info for partial failures or when explicitly requested
+        const shouldIncludeDebugInfo = !saveSuccess || successfulDownloads.length < nodes.length;
+        const finalText = shouldIncludeDebugInfo 
+          ? `${resultText}\n\n${userFriendlyDebugInfo}`
+          : resultText;
+          
         return {
           content: [
             {
               type: "text",
-              text: saveSuccess
-                ? `Success, ${downloads.length} images downloaded: ${downloads.join(", ")}`
-                : "Failed",
+              text: finalText,
             },
           ],
         };
