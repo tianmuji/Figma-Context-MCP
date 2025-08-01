@@ -61,6 +61,9 @@ export async function saveFigmaData(
  * @param fileName - The filename to save as
  * @param localPath - The local path to save to
  * @param imageUrl - Image URL (images[nodeId])
+ * @param debugCollector - Optional debug collector to report URL status
+ * @param nodeId - Optional node ID for debug reporting
+ * @param format - Optional format for debug reporting
  * @returns A Promise that resolves to the full file path where the image was saved
  * @throws Error if download fails
  */
@@ -68,6 +71,9 @@ export async function downloadFigmaImage(
   fileName: string,
   localPath: string,
   imageUrl: string,
+  debugCollector?: any, // Using any to avoid circular import
+  nodeId?: string,
+  format?: 'PNG' | 'SVG' | 'IMAGE_FILL'
 ): Promise<string> {
   try {
     // Ensure local path exists
@@ -117,18 +123,30 @@ export async function downloadFigmaImage(
 
       // Resolve only when the stream is fully written
       writer.on('finish', () => {
+        // Report successful download to debug collector
+        if (debugCollector && nodeId && format) {
+          debugCollector.addDownloadUrl(nodeId, fileName, format, imageUrl, 'success');
+        }
         resolve(fullPath);
       });
 
       writer.on("error", (err) => {
         reader.cancel();
         fs.unlink(fullPath, () => {});
+        // Report failed download to debug collector
+        if (debugCollector && nodeId && format) {
+          debugCollector.addDownloadUrl(nodeId, fileName, format, imageUrl, 'failed');
+        }
         reject(new Error(`Failed to write image: ${err.message}`));
       });
 
       processStream();
     });
   } catch (error) {
+    // Report failed download to debug collector
+    if (debugCollector && nodeId && format) {
+      debugCollector.addDownloadUrl(nodeId, fileName, format, imageUrl, 'failed');
+    }
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new Error(`Error downloading image: ${errorMessage}`);
   }

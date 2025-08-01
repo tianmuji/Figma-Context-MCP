@@ -137,10 +137,14 @@ export class FigmaService {
       if (!imageUrl) {
         Logger.log(`No image URL found for imageRef ${imageRef} (${fileName})`);
         debug.addFailedDownload("unknown", fileName, `Invalid imageRef: ${imageRef}`);
+        // Capture failed URL attempt for image fill
+        debug.addDownloadUrl(imageRef, fileName, 'IMAGE_FILL', null, 'failed');
         return "";
       }
       Logger.log(`Queuing image fill download: ${imageRef} -> ${fileName}`);
-      return downloadFigmaImage(fileName, localPath, imageUrl);
+      // Capture URL for image fill
+      debug.addDownloadUrl(imageRef, fileName, 'IMAGE_FILL', imageUrl, 'attempted');
+      return downloadFigmaImage(fileName, localPath, imageUrl, debug, imageRef, 'IMAGE_FILL');
     });
     
     Logger.log(`Attempting to download ${validImageRefs.length} image fills out of ${nodes.length} requested`);
@@ -188,6 +192,17 @@ export class FigmaService {
       pngIds.length > 0
         ? this.request<GetImagesResponse>(pngEndpoint).then(({ images = {} }) => {
             Logger.log(`PNG API response received for ${pngIds.length} nodes`);
+            
+            // Capture URLs for PNG nodes
+            pngNodes.forEach(node => {
+              const imageUrl = images[node.nodeId];
+              if (imageUrl) {
+                debug.addDownloadUrl(node.nodeId, node.fileName, 'PNG', imageUrl, 'attempted');
+              } else {
+                debug.addDownloadUrl(node.nodeId, node.fileName, 'PNG', null, 'failed');
+              }
+            });
+            
             const emptyUrls = pngIds.filter(id => !images[id]);
             if (emptyUrls.length > 0) {
               Logger.log(`PNG nodes with empty/missing URLs: ${emptyUrls.join(", ")}`);
@@ -216,6 +231,17 @@ export class FigmaService {
       svgIds.length > 0
         ? this.request<GetImagesResponse>(svgEndpoint).then(({ images = {} }) => {
             Logger.log(`SVG API response received for ${svgIds.length} nodes`);
+            
+            // Capture URLs for SVG nodes
+            svgNodes.forEach(node => {
+              const imageUrl = images[node.nodeId];
+              if (imageUrl) {
+                debug.addDownloadUrl(node.nodeId, node.fileName, 'SVG', imageUrl, 'attempted');
+              } else {
+                debug.addDownloadUrl(node.nodeId, node.fileName, 'SVG', null, 'failed');
+              }
+            });
+            
             const emptyUrls = svgIds.filter(id => !images[id]);
             if (emptyUrls.length > 0) {
               Logger.log(`SVG nodes with empty/missing URLs: ${emptyUrls.join(", ")}`);
@@ -240,11 +266,12 @@ export class FigmaService {
     Logger.log(`Combined API response contains ${Object.keys(files).length} image URLs`);
 
     const downloads = nodes
-      .map(({ nodeId, fileName }) => {
+      .map(({ nodeId, fileName, fileType }) => {
         const imageUrl = files[nodeId];
         if (imageUrl) {
           Logger.log(`Queuing download for node ${nodeId} -> ${fileName}`);
-          return downloadFigmaImage(fileName, localPath, imageUrl);
+          const format = fileType === 'png' ? 'PNG' : 'SVG';
+          return downloadFigmaImage(fileName, localPath, imageUrl, debug, nodeId, format);
         } else {
           Logger.log(`No image URL found for node ${nodeId} (${fileName})`);
           debug.addFailedDownload(nodeId, fileName, "No image URL found in API response");
