@@ -52,20 +52,20 @@ function registerTools(
         .describe(
           "The ID of the node to fetch, often found as URL parameter node-id=<nodeId>, always use if provided",
         ),
+      savePath: z
+        .string()
+        .optional()
+        .describe(
+          "The absolute path to the directory where images are stored in the project. If the directory does not exist, it will be created. The format of this path should respect the directory format of the operating system you are running on. Don't use any special character escaping in the path name either."
+        ),
       depth: z
         .number()
         .optional()
         .describe(
           "OPTIONAL. Do NOT use unless explicitly requested by the user. Controls how many levels deep to traverse the node tree,",
         ),
-      savePath: z
-        .string()
-        .optional()
-        .describe(
-          "OPTIONAL. Local directory path where the fetched Figma data should be saved as a JSON file. If provided, the directory will be created if it doesn't exist.",
-        ),
     },
-    async ({ fileKey, nodeId, depth, savePath }) => {
+    async ({ fileKey, nodeId, savePath, depth }) => {
       try {
         Logger.log(
           `Fetching ${
@@ -160,7 +160,7 @@ function registerTools(
         .optional()
         .default(2)
         .describe(
-          "Export scale for PNG images. Optional, defaults to 2 if not specified. Affects PNG images only.",
+          "Export scale for PNG images. Optional, defaults to 3 if not specified. Affects PNG images only.",
         ),
       localPath: z
         .string()
