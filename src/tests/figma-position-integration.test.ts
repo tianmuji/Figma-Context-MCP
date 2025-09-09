@@ -1,5 +1,6 @@
 // Integration test to verify Figma MCP server returns position information correctly
 import { parseFigmaResponse } from '../services/simplify-node-response.js';
+import type { GetFileNodesResponse } from '../services/figma.js';
 
 describe("Figma Position Information Integration", () => {
   let mockFigmaResponse: GetFileNodesResponse;

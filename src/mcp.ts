@@ -3,6 +3,7 @@ import { z } from "zod";
 import { FigmaService, type FigmaAuthOptions } from "./services/figma.js";
 import type { SimplifiedDesign } from "./services/simplify-node-response.js";
 import { createImageDownloadDebugCollector, formatDebugInfoForUser } from "./utils/debug-info.js";
+import { normalizeNodeId } from "./utils/nodeid.js";
 import yaml from "js-yaml";
 import { Logger } from "./utils/logger.js";
 import { saveFigmaData } from "./utils/common.js";
@@ -50,7 +51,7 @@ function registerTools(
         .string()
         .optional()
         .describe(
-          "The ID of the node to fetch, often found as URL parameter node-id=<nodeId>, always use if provided",
+          "The ID of the node to fetch, often found as URL parameter node-id=<nodeId>. Supports both dash format (1234-5678) and colon format (1234:5678). Always use if provided.",
         ),
       savePath: z
         .string()
@@ -67,15 +68,30 @@ function registerTools(
     },
     async ({ fileKey, nodeId, savePath, depth }) => {
       try {
+        // Normalize nodeId if provided
+        let normalizedNodeId = nodeId;
+        if (nodeId) {
+          const normalized = normalizeNodeId(nodeId);
+          if (!normalized.isValid) {
+            Logger.log(`Warning: Invalid nodeId format '${nodeId}': ${normalized.error}`);
+            // Continue with original nodeId if normalization fails
+          } else {
+            if (normalized.wasConverted) {
+              Logger.log(`NodeId converted: '${nodeId}' -> '${normalized.normalizedId}'`);
+            }
+            normalizedNodeId = normalized.normalizedId || nodeId;
+          }
+        }
+        
         Logger.log(
           `Fetching ${
             depth ? `${depth} layers deep` : "all layers"
-          } of ${nodeId ? `node ${nodeId} from file` : `full file`} ${fileKey}`,
+          } of ${normalizedNodeId ? `node ${normalizedNodeId} from file` : `full file`} ${fileKey}`,
         );
 
         let file: SimplifiedDesign;
-        if (nodeId) {
-          file = await figmaService.getNode(fileKey, nodeId, depth);
+        if (normalizedNodeId) {
+          file = await figmaService.getNode(fileKey, normalizedNodeId, depth);
         } else {
           file = await figmaService.getFile(fileKey, depth);
         }
@@ -143,7 +159,7 @@ function registerTools(
         .object({
           nodeId: z
             .string()
-            .describe("The ID of the Figma image node to fetch, formatted as 1234:5678"),
+            .describe("The ID of the Figma image node to fetch. Supports both dash format (1234-5678) and colon format (1234:5678)."),
           imageRef: z
             .string()
             .optional()
@@ -201,13 +217,29 @@ function registerTools(
         Logger.log(`Image download tool called with ${nodes.length} nodes for file ${fileKey}`);
         debugCollector.setTotalNodes(nodes.length);
         
+        // Normalize node IDs from dash format to colon format
+        const normalizedNodes = nodes.map(node => {
+          const normalized = normalizeNodeId(node.nodeId);
+          if (!normalized.isValid) {
+            Logger.log(`Warning: Invalid nodeId format '${node.nodeId}': ${normalized.error}`);
+            return node; // Keep original if normalization fails
+          }
+          if (normalized.wasConverted) {
+            Logger.log(`NodeId converted: '${node.nodeId}' -> '${normalized.normalizedId}'`);
+          }
+          return {
+            ...node,
+            nodeId: normalized.normalizedId || node.nodeId
+          };
+        });
+        
         // Separate nodes into image fills and render requests
-        const imageFills = nodes.filter(({ imageRef }) => !!imageRef) as {
+        const imageFills = normalizedNodes.filter(({ imageRef }) => !!imageRef) as {
           nodeId: string;
           imageRef: string;
           fileName: string;
         }[];
-        const renderRequests = nodes
+        const renderRequests = normalizedNodes
           .filter(({ imageRef }) => !imageRef)
           .map(({ nodeId, fileName }) => ({
             nodeId,
@@ -306,6 +338,7 @@ function registerTools(
       }
     },
   );
+
 }
 
 export { createServer };
