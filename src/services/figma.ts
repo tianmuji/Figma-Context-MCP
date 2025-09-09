@@ -170,6 +170,7 @@ export class FigmaService {
       includeId: boolean;
       simplifyStroke: boolean;
     },
+    useAbsoluteBounds: boolean = false,
     debugCollector?: ImageDownloadDebugCollector,
   ): Promise<string[]> {
     const debug = debugCollector || createImageDownloadDebugCollector();
@@ -187,7 +188,7 @@ export class FigmaService {
     Logger.log(`PNG nodes count: ${pngNodes.length} (IDs: ${pngIds.join(", ") || "none"})`);
     Logger.log(`SVG nodes count: ${svgNodes.length} (IDs: ${svgIds.join(", ") || "none"})`);
 
-    const pngEndpoint = `/images/${fileKey}?ids=${pngIds.join(",")}&format=png&scale=${pngScale}`;
+    const pngEndpoint = `/images/${fileKey}?ids=${pngIds.join(",")}&format=png&scale=${pngScale}&use_absolute_bounds=${useAbsoluteBounds}`;
     const pngFiles =
       pngIds.length > 0
         ? this.request<GetImagesResponse>(pngEndpoint).then(({ images = {} }) => {
@@ -224,6 +225,7 @@ export class FigmaService {
       `svg_outline_text=${svgOptions.outlineText}`,
       `svg_include_id=${svgOptions.includeId}`,
       `svg_simplify_stroke=${svgOptions.simplifyStroke}`,
+      `use_absolute_bounds=${useAbsoluteBounds}`,
     ].join("&");
     const svgEndpoint = `/images/${fileKey}?${svgParams}`;
 

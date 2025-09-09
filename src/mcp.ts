@@ -188,8 +188,13 @@ function registerTools(
         .optional()
         .default({})
         .describe("Options for SVG export"),
+      useAbsoluteBounds: z
+        .boolean()
+        .optional()
+        .default(false)
+        .describe("Whether to use absolute bounds for image exports. When true, includes only the element's exact boundary without extra padding. Default is false."),
     },
-    async ({ fileKey, nodes, localPath, svgOptions, pngScale }) => {
+    async ({ fileKey, nodes, localPath, svgOptions, pngScale, useAbsoluteBounds }) => {
       try {
         const debugCollector = createImageDownloadDebugCollector();
         
@@ -238,6 +243,7 @@ function registerTools(
           localPath,
           pngScale,
           svgOptions,
+          useAbsoluteBounds,
           debugCollector,
         );
 
