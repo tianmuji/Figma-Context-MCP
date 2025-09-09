@@ -8,7 +8,7 @@ import { Logger } from "./utils/logger.js";
 import { saveFigmaData } from "./utils/common.js";
 
 const serverInfo = {
-  name: "Figma MCP Server",
+  name: "Figma MCP Server111",
   version: process.env.NPM_PACKAGE_VERSION ?? "unknown",
 };
 
