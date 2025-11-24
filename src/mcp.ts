@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { FigmaService, type FigmaAuthOptions } from "./services/figma.js";
 import type { SimplifiedDesign } from "./services/simplify-node-response.js";
+import type { GetFileResponse, GetFileNodesResponse } from "@figma/rest-api-spec";
 import { createImageDownloadDebugCollector, formatDebugInfoForUser } from "./utils/debug-info.js";
 import { normalizeNodeId } from "./utils/nodeid.js";
 import yaml from "js-yaml";
@@ -124,12 +125,10 @@ function registerTools(
         }
 
         Logger.log("Sending result to client");
-        const responseText = savedFilePath
-          ? `${formattedResult}\n\n--- FILE SAVED ---\nData saved to: ${savedFilePath}`
-          : formattedResult;
-
+        // 只返回格式化的结果，不包含调试信息
+        // 文件保存信息已通过 Logger.log 记录，不需要在返回数据中包含
         return {
-          content: [{ type: "text", text: responseText }],
+          content: [{ type: "text", text: formattedResult }],
         };
       } catch (error) {
         const message = error instanceof Error ? error.message : JSON.stringify(error);

@@ -285,14 +285,14 @@ export class FigmaService {
     Logger.log(`Attempting to download ${downloads.length} images out of ${nodes.length} requested`);
 
     const results = await Promise.all(downloads);
-    const successfulDownloads = results.filter(r => r && r.length > 0);
+    const successfulDownloads = results.filter((r): r is string => typeof r === 'string' && r.length > 0);
     debug.setSuccessfulDownloads(successfulDownloads.length);
 
     if (!debugCollector) {
       debug.logDebugSummary();
     }
 
-    return results;
+    return successfulDownloads;
   }
 
   async getFile(fileKey: string, depth?: number | null): Promise<SimplifiedDesign> {

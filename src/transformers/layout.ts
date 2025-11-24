@@ -13,10 +13,6 @@ export interface SimplifiedLayout {
   alignSelf?: "flex-start" | "flex-end" | "center" | "stretch";
   wrap?: boolean;
   gap?: string;
-  locationRelativeToParent?: {
-    x: number;
-    y: number;
-  };
   dimensions?: {
     width?: number;
     height?: number;
@@ -220,12 +216,6 @@ function buildSimplifiedLayoutValues(
   ) {
     if (n.layoutPositioning === "ABSOLUTE") {
       layoutValues.position = "absolute";
-    }
-    if (n.absoluteBoundingBox && parent.absoluteBoundingBox) {
-      layoutValues.locationRelativeToParent = {
-        x: pixelRound(n.absoluteBoundingBox.x - parent.absoluteBoundingBox.x),
-        y: pixelRound(n.absoluteBoundingBox.y - parent.absoluteBoundingBox.y),
-      };
     }
   }
 

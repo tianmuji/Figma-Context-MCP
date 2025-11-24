@@ -75,23 +75,6 @@ function shouldIncludePositionInfo(
   return false;
 }
 
-/**
- * Calculates position relative to root element
- */
-function calculateRelativePosition(
-  nodeBounds: { x: number; y: number; width: number; height: number },
-  rootBounds?: { x: number; y: number; width: number; height: number }
-): { x: number; y: number } {
-  if (!rootBounds) {
-    return { x: nodeBounds.x, y: nodeBounds.y };
-  }
-
-  return {
-    x: nodeBounds.x - rootBounds.x,
-    y: nodeBounds.y - rootBounds.y
-  };
-}
-
 // -------------------- SIMPLIFIED STRUCTURES --------------------
 
 export type TextStyle = Partial<{
@@ -141,8 +124,6 @@ export interface SimplifiedNode {
   id: string;
   name: string;
   type: string; // e.g. FRAME, TEXT, INSTANCE, RECTANGLE, etc.
-  // geometry
-  boundingBox?: BoundingBox;
   // text
   text?: string;
   textStyle?: string;
@@ -161,13 +142,6 @@ export interface SimplifiedNode {
   componentProperties?: ComponentProperties[];
   // children
   children?: SimplifiedNode[];
-}
-
-export interface BoundingBox {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
 }
 
 export type CSSRGBAColor = `rgba(${number}, ${number}, ${number}, ${number})`;
@@ -228,15 +202,9 @@ export function parseFigmaResponse(data: GetFileResponse | GetFileNodesResponse)
     styles: {},
   };
 
-  // Calculate root bounds for relative positioning
-  let rootBounds: { x: number; y: number; width: number; height: number } | undefined;
-  if (nodesToParse.length > 0 && hasValue("absoluteBoundingBox", nodesToParse[0]) && nodesToParse[0].absoluteBoundingBox) {
-    rootBounds = nodesToParse[0].absoluteBoundingBox;
-  }
-
   const simplifiedNodes: SimplifiedNode[] = nodesToParse
     .filter(isVisible)
-    .map((n) => parseNode(globalVars, n, undefined, rootBounds))
+    .map((n) => parseNode(globalVars, n, undefined))
     .filter((child) => child !== null && child !== undefined);
 
   const simplifiedDesign: SimplifiedDesign = {
@@ -298,7 +266,6 @@ function parseNode(
   globalVars: GlobalVars,
   n: FigmaDocumentNode,
   parent?: FigmaDocumentNode,
-  rootBounds?: { x: number; y: number; width: number; height: number },
 ): SimplifiedNode | null {
   const { id, name, type } = n;
 
@@ -307,24 +274,6 @@ function parseNode(
     name,
     type,
   };
-
-  // Check if this node needs position information for layout inference
-  const needsPositionInfo = shouldIncludePositionInfo(n, parent);
-
-  if (needsPositionInfo && hasValue("absoluteBoundingBox", n) && n.absoluteBoundingBox) {
-    // Calculate position relative to root element
-    const relativePosition = calculateRelativePosition(
-      n.absoluteBoundingBox,
-      rootBounds
-    );
-
-    simplified.boundingBox = {
-      x: relativePosition.x,
-      y: relativePosition.y,
-      width: n.absoluteBoundingBox.width,
-      height: n.absoluteBoundingBox.height
-    };
-  }
 
   if (type === "INSTANCE") {
     if (hasValue("componentId", n)) {
@@ -409,13 +358,19 @@ function parseNode(
 
   // Recursively process child nodes.
   // Include children at the very end so all relevant configuration data for the element is output first and kept together for the AI.
+  // Skip children processing if node name contains "ic" (indicates this is an asset/icon node)
   if (hasValue("children", n) && n.children.length > 0) {
-    const children = n.children
-      .filter(isVisible)
-      .map((child) => parseNode(globalVars, child, n, rootBounds))
-      .filter((child) => child !== null && child !== undefined);
-    if (children.length) {
-      simplified.children = children;
+    // Check if this is an asset/icon node by name
+    const isAssetNode = name && typeof name === "string" && name.toLowerCase().includes("ic");
+    
+    if (!isAssetNode) {
+      const children = n.children
+        .filter(isVisible)
+        .map((child) => parseNode(globalVars, child, n))
+        .filter((child) => child !== null && child !== undefined);
+      if (children.length) {
+        simplified.children = children;
+      }
     }
   }
 

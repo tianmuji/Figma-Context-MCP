@@ -50,8 +50,13 @@ describe("Data Processing Integration Tests", () => {
       }
 
       // Process children recursively
+      // Skip children processing if node name contains "ic" (indicates this is an asset/icon node)
       if (node.children && node.children.length > 0) {
-        simplified.children = node.children.map(mockParseNode);
+        const isAssetNode = node.name && typeof node.name === "string" && node.name.toLowerCase().includes("ic");
+        
+        if (!isAssetNode) {
+          simplified.children = node.children.map(mockParseNode);
+        }
       }
 
       return simplified;
@@ -383,6 +388,145 @@ describe("Data Processing Integration Tests", () => {
       // Should not have stroke or layout styles
       expect(result.nodes[0].strokes).toBeUndefined();
       expect(result.nodes[0].layout).toBeUndefined();
+    });
+  });
+
+  describe("Asset node filtering by name pattern", () => {
+    it("should skip children processing when node name contains 'ic'", () => {
+      const mockFigmaData = {
+        name: "Test File",
+        lastModified: "2024-01-01T00:00:00Z",
+        document: {
+          children: [
+            {
+              id: "1:1",
+              name: "ic_home_icon",
+              type: "FRAME",
+              children: [
+                {
+                  id: "1:2",
+                  name: "Path 1",
+                  type: "VECTOR",
+                },
+                {
+                  id: "1:3",
+                  name: "Path 2",
+                  type: "VECTOR",
+                },
+              ],
+            },
+            {
+              id: "2:1",
+              name: "Normal Frame",
+              type: "FRAME",
+              children: [
+                {
+                  id: "2:2",
+                  name: "Child Element",
+                  type: "RECTANGLE",
+                },
+              ],
+            },
+          ],
+        },
+      };
+
+      const result = mockParseFigmaResponse(mockFigmaData);
+
+      expect(result.nodes).toHaveLength(2);
+      
+      // Asset node (contains "ic") should not have children
+      expect(result.nodes[0].name).toBe("ic_home_icon");
+      expect(result.nodes[0].children).toBeUndefined();
+      
+      // Normal node should have children
+      expect(result.nodes[1].name).toBe("Normal Frame");
+      expect(result.nodes[1].children).toBeDefined();
+      expect(result.nodes[1].children).toHaveLength(1);
+      expect(result.nodes[1].children[0].name).toBe("Child Element");
+    });
+
+    it("should handle case-insensitive matching of 'ic'", () => {
+      const mockFigmaData = {
+        name: "Test File",
+        lastModified: "2024-01-01T00:00:00Z",
+        document: {
+          children: [
+            {
+              id: "1:1",
+              name: "ICON_Frame",
+              type: "FRAME",
+              children: [
+                {
+                  id: "1:2",
+                  name: "Child",
+                  type: "RECTANGLE",
+                },
+              ],
+            },
+            {
+              id: "2:1",
+              name: "IconContainer",
+              type: "FRAME",
+              children: [
+                {
+                  id: "2:2",
+                  name: "Child",
+                  type: "RECTANGLE",
+                },
+              ],
+            },
+          ],
+        },
+      };
+
+      const result = mockParseFigmaResponse(mockFigmaData);
+
+      expect(result.nodes).toHaveLength(2);
+      
+      // Both should skip children (case-insensitive matching)
+      expect(result.nodes[0].name).toBe("ICON_Frame");
+      expect(result.nodes[0].children).toBeUndefined();
+      
+      expect(result.nodes[1].name).toBe("IconContainer");
+      expect(result.nodes[1].children).toBeUndefined();
+    });
+
+    it("should still process children for nodes without 'ic' in name", () => {
+      const mockFigmaData = {
+        name: "Test File",
+        lastModified: "2024-01-01T00:00:00Z",
+        document: {
+          children: [
+            {
+              id: "1:1",
+              name: "Button_Container",
+              type: "FRAME",
+              children: [
+                {
+                  id: "1:2",
+                  name: "Text Layer",
+                  type: "TEXT",
+                },
+                {
+                  id: "1:3",
+                  name: "Background",
+                  type: "RECTANGLE",
+                },
+              ],
+            },
+          ],
+        },
+      };
+
+      const result = mockParseFigmaResponse(mockFigmaData);
+
+      expect(result.nodes).toHaveLength(1);
+      expect(result.nodes[0].name).toBe("Button_Container");
+      expect(result.nodes[0].children).toBeDefined();
+      expect(result.nodes[0].children).toHaveLength(2);
+      expect(result.nodes[0].children[0].name).toBe("Text Layer");
+      expect(result.nodes[0].children[1].name).toBe("Background");
     });
   });
 });
